@@ -1,0 +1,18 @@
+{
+  "name": "@pub-sub/functions",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "sst bind vitest",
+    "typecheck": "tsc -noEmit"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.125",
+    "@types/node": "^20.8.7",
+    "sst": "^2.30.3",
+    "vitest": "^0.34.6"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1477.0"
+  }
+}

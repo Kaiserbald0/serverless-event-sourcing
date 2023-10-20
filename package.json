@@ -1,0 +1,29 @@
+{
+  "name": "pub-sub",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "sst dev",
+    "build": "sst build",
+    "deploy": "sst deploy",
+    "remove": "sst remove",
+    "console": "sst console",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@tsconfig/node18": "^18.2.2",
+    "aws-cdk-lib": "2.95.1",
+    "constructs": "10.2.69",
+    "sst": "^2.30.3",
+    "typescript": "^5.2.2"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.433.0",
+    "@aws-sdk/lib-dynamodb": "^3.433.0",
+    "uuid": "^9.0.1"
+  }
+}
