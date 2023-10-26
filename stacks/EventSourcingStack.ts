@@ -1,17 +1,20 @@
 import { Api, Function, Queue, StackContext, Table, Topic } from "sst/constructs";
 
 export function EventSourcingStack({ stack }: StackContext) {
-  const playerEventIngestedTopic  = new Topic(stack, "PlayerEventIngestedTopic", {
-    subscribers: {
-      playerListIndexBuilder: "packages/functions/src/player/runners/playerListIndex.main"
-    },
-  });
-  const playerCommandParserFunction = new Function(stack, "playerCommandParserFunction", {
-    handler: "packages/functions/src/player/commands/parser.main",
-    bind: [ playerEventIngestedTopic ]
+  const eventParserFunction = new Function(stack, "eventParserFunction", {
+    handler: "packages/functions/src/player/events/eventParser.main"
   });
   const playerEventsQueue = new Queue(stack, "PlayerEventsQueue", {
-    consumer: playerCommandParserFunction,
+    consumer: eventParserFunction,
+  });
+  const playerEventsTopic  = new Topic(stack, "PlayerEventsTopic", {
+    subscribers: {
+      playerEventQueue: playerEventsQueue
+    },
+  });
+  const eventTableEventsHandler = new Function(stack, "eventTableEventsHandlerFunction", {
+    handler: "packages/functions/src/player/commands/eventTableEventsHandler.main",
+    bind: [ playerEventsTopic ]
   });
   const eventTable = new Table(stack, "events", {
     fields: {
@@ -23,18 +26,13 @@ export function EventSourcingStack({ stack }: StackContext) {
     primaryIndex: { partitionKey: "eventId", sortKey: "eventDate" },
     stream: true,
     consumers: {
-      playerCommandParserFunction: playerCommandParserFunction,
+      playerCommandParserFunction: eventTableEventsHandler,
     }
-  });
-  const playerEventsTopic  = new Topic(stack, "PlayerEventsTopic", {
-    subscribers: {
-      playerEventQueue: playerEventsQueue
-    },
   });
   const api = new Api(stack, "Api", {
     defaults: {
       function: {
-        bind: [playerEventsTopic, eventTable ]
+        bind: [ eventTable ]
       },
     },
     routes: {

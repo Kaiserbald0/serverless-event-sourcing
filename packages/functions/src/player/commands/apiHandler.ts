@@ -57,7 +57,7 @@ export async function main(event: APIGatewayProxyEvent, context: Context): Promi
   if (!eventType || !eventPayload) {
     return {
       statusCode: 400,
-      body: JSON.stringify({ status: "failed", message: 'unrecognnize method' }),
+      body: JSON.stringify({ status: "failed", message: 'unrecognized method' }),
     };
   }  
   const eventObjetc: Event = {

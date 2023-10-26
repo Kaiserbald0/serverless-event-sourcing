@@ -13,6 +13,7 @@
   },
   "devDependencies": {
     "@tsconfig/node18": "^18.2.2",
+    "@types/uuid": "^9.0.6",
     "aws-cdk-lib": "2.95.1",
     "constructs": "10.2.69",
     "sst": "^2.30.3",
