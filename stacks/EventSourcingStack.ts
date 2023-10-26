@@ -1,57 +1,55 @@
-import { Api, Function, Queue, StackContext, Table, Topic } from "sst/constructs";
+import { Api, type StackContext, RemixSite, use } from 'sst/constructs'
+import { WebSocketStack } from './WebSocketStack'
+import { EventSourcingPlayerStack } from './EventSourcingPlayerStack'
+import { TimeTravelStack } from './TimeTravelStack'
 
-export function EventSourcingStack({ stack }: StackContext) {
-  const playerEventIngestedTopic  = new Topic(stack, "PlayerEventIngestedTopic", {
-    subscribers: {
-      playerListIndexBuilder: "packages/functions/src/player/runners/playerListIndex.main"
-    },
-  });
-  const playerCommandParserFunction = new Function(stack, "playerCommandParserFunction", {
-    handler: "packages/functions/src/player/commands/parser.main",
-    bind: [ playerEventIngestedTopic ]
-  });
-  const playerEventsQueue = new Queue(stack, "PlayerEventsQueue", {
-    consumer: playerCommandParserFunction,
-  });
-  const eventTable = new Table(stack, "events", {
-    fields: {
-      eventId: "string",
-      eventType: "string",
-      eventPayload: "string",
-      eventDate: "number",
-    },
-    primaryIndex: { partitionKey: "eventId", sortKey: "eventDate" },
-    stream: true,
-    consumers: {
-      playerCommandParserFunction: playerCommandParserFunction,
-    }
-  });
-  const playerEventsTopic  = new Topic(stack, "PlayerEventsTopic", {
-    subscribers: {
-      playerEventQueue: playerEventsQueue
-    },
-  });
-  const api = new Api(stack, "Api", {
+export function EventSourcingStack ({ stack }: StackContext): void {
+  const {
+    wsApi
+  } = use(WebSocketStack)
+
+  const {
+    playerEventsTopic
+  } = use(EventSourcingPlayerStack)
+
+  const {
+    timeTravelTopic
+  } = use(TimeTravelStack)
+
+  const api = new Api(stack, 'Api', {
     defaults: {
       function: {
-        bind: [playerEventsTopic, eventTable ]
-      },
+        bind: [playerEventsTopic, timeTravelTopic],
+        environment: {
+          MONGODB_URI: (process.env.MONGODB_URI ?? ''),
+          MONGODB_DB_NAME: (process.env.MONGODB_DB_NAME ?? ''),
+          MONGODB_EVENT_COLLECTION_NAME: (process.env.MONGODB_EVENT_COLLECTION_NAME ?? ''),
+          MONGODB_PLAYERS_COLLECTION_NAME: (process.env.MONGODB_PLAYERS_COLLECTION_NAME ?? '')
+        }
+      }
     },
     routes: {
-      "POST /players": "packages/functions/src/player/commands/apiHandler.main",
-      "PATCH /players/{id}": "packages/functions/src/player/commands/apiHandler.main",
-      "DELETE /players/{id}": "packages/functions/src/player/commands/apiHandler.main",
-      "GET /players": "packages/functions/src/player/queries/getPlayerList.main",
-      "GET /players/roles": "packages/functions/src/player/queries/getPlayerRoles.main",
-      "GET /players/byrole": "packages/functions/src/player/queries/getNumberOfPlayersByRoles.main",
+      'POST /players': 'packages/functions/src/player/commands/apiHandler.main',
+      'PATCH /players/{id}': 'packages/functions/src/player/commands/apiHandler.main',
+      'DELETE /players/{id}': 'packages/functions/src/player/commands/apiHandler.main',
+      'GET /players': 'packages/functions/src/player/queries/getPlayers.main',
+      'GET /players/roles': 'packages/functions/src/player/queries/getPlayerRoles.main',
+      'GET /events': 'packages/functions/src/events/queries/getEvents.main',
+      'POST /events/timetravel': 'packages/functions/src/events/timetravelling/apiHandler.main'
     }
-  });
+  })
 
-  api.attachPermissionsToRoute('POST /players', ["dynamodb"]);
-  api.attachPermissionsToRoute('PATCH /players/{id}', ["dynamodb"]);
-  api.attachPermissionsToRoute('DELETE /players/{id}', ["dynamodb"]);
+  const site = new RemixSite(stack, 'FrontendSite', {
+    path: 'frontend/',
+    environment: {
+      API_URL: api.url,
+      WEBSOCKET_URL: wsApi.url
+    }
+  })
 
   stack.addOutputs({
-    ApiEndpoint: api.url
+    WSEndpoint: wsApi.url,
+    ApiEndpoint: api.url,
+    URL: site.url ?? 'localhost'
   })
 }
