@@ -1,17 +1,18 @@
-import AWS from 'aws-sdk';
-import { Topic } from 'sst/node/topic';
-
-const sns = new AWS.SNS();
-
-export async function main() {
+// todo type  response
+export async function main (): Promise<{
+  statusCode: number
+  body: any
+}> {
   return {
     statusCode: 200,
-    body: JSON.stringify({ data: [{
-      id: 'uuid',
-      role: 'B',
-    }, {
-      id: 'uuid',
-      role: 'C',
-    }] }),
-  };
+    body: JSON.stringify({
+      data: [{
+        id: 'uuid',
+        role: 'B'
+      }, {
+        id: 'uuid',
+        role: 'C'
+      }]
+    })
+  }
 }

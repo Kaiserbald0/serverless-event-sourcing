@@ -1,16 +1,10 @@
-import AWS from 'aws-sdk';
-import { DynamoDBStreamEvent, SQSEvent } from "aws-lambda";
-import { Topic } from 'sst/node/topic';
-import { json } from 'stream/consumers';
+import { type SQSEvent } from 'aws-lambda'
 
-const sns = new AWS.SNS();
-
-export async function main(event: SQSEvent) {
-  console.log("[SQS EVENT PARSER] Event received");
+export async function main (event: SQSEvent): Promise<void> {
+  console.log('[SQS EVENT PARSER] Event received')
   event.Records.forEach(event => {
-    const messageBody = JSON.parse(event.body).Message;
+    const messageBody = JSON.parse(event.body).Message
     const eventToParse = JSON.parse(messageBody)
-    console.log(eventToParse);    
-  });
-  return {};
+    console.log(eventToParse)
+  })
 }

@@ -1,53 +1,53 @@
-import { Api, Function, Queue, StackContext, Table, Topic } from "sst/constructs";
+import { Api, Function, Queue, type StackContext, Table, Topic } from 'sst/constructs'
 
-export function EventSourcingStack({ stack }: StackContext) {
-  const eventParserFunction = new Function(stack, "eventParserFunction", {
-    handler: "packages/functions/src/player/events/eventParser.main"
-  });
-  const playerEventsQueue = new Queue(stack, "PlayerEventsQueue", {
-    consumer: eventParserFunction,
-  });
-  const playerEventsTopic  = new Topic(stack, "PlayerEventsTopic", {
+export function EventSourcingStack ({ stack }: StackContext): void {
+  const eventParserFunction = new Function(stack, 'eventParserFunction', {
+    handler: 'packages/functions/src/player/events/eventParser.main'
+  })
+  const playerEventsQueue = new Queue(stack, 'PlayerEventsQueue', {
+    consumer: eventParserFunction
+  })
+  const playerEventsTopic = new Topic(stack, 'PlayerEventsTopic', {
     subscribers: {
       playerEventQueue: playerEventsQueue
-    },
-  });
-  const eventTableEventsHandler = new Function(stack, "eventTableEventsHandlerFunction", {
-    handler: "packages/functions/src/player/commands/eventTableEventsHandler.main",
-    bind: [ playerEventsTopic ]
-  });
-  const eventTable = new Table(stack, "events", {
+    }
+  })
+  const eventTableEventsHandler = new Function(stack, 'eventTableEventsHandlerFunction', {
+    handler: 'packages/functions/src/player/commands/eventTableEventsHandler.main',
+    bind: [playerEventsTopic]
+  })
+  const eventTable = new Table(stack, 'events', {
     fields: {
-      eventId: "string",
-      eventType: "string",
-      eventPayload: "string",
-      eventDate: "number",
+      eventId: 'string',
+      eventType: 'string',
+      eventPayload: 'string',
+      eventDate: 'number'
     },
-    primaryIndex: { partitionKey: "eventId", sortKey: "eventDate" },
+    primaryIndex: { partitionKey: 'eventId', sortKey: 'eventDate' },
     stream: true,
     consumers: {
-      playerCommandParserFunction: eventTableEventsHandler,
+      playerCommandParserFunction: eventTableEventsHandler
     }
-  });
-  const api = new Api(stack, "Api", {
+  })
+  const api = new Api(stack, 'Api', {
     defaults: {
       function: {
-        bind: [ eventTable ]
-      },
+        bind: [eventTable]
+      }
     },
     routes: {
-      "POST /players": "packages/functions/src/player/commands/apiHandler.main",
-      "PATCH /players/{id}": "packages/functions/src/player/commands/apiHandler.main",
-      "DELETE /players/{id}": "packages/functions/src/player/commands/apiHandler.main",
-      "GET /players": "packages/functions/src/player/queries/getPlayerList.main",
-      "GET /players/roles": "packages/functions/src/player/queries/getPlayerRoles.main",
-      "GET /players/byrole": "packages/functions/src/player/queries/getNumberOfPlayersByRoles.main",
+      'POST /players': 'packages/functions/src/player/commands/apiHandler.main',
+      'PATCH /players/{id}': 'packages/functions/src/player/commands/apiHandler.main',
+      'DELETE /players/{id}': 'packages/functions/src/player/commands/apiHandler.main',
+      'GET /players': 'packages/functions/src/player/queries/getPlayerList.main',
+      'GET /players/roles': 'packages/functions/src/player/queries/getPlayerRoles.main',
+      'GET /players/byrole': 'packages/functions/src/player/queries/getNumberOfPlayersByRoles.main'
     }
-  });
+  })
 
-  api.attachPermissionsToRoute('POST /players', ["dynamodb"]);
-  api.attachPermissionsToRoute('PATCH /players/{id}', ["dynamodb"]);
-  api.attachPermissionsToRoute('DELETE /players/{id}', ["dynamodb"]);
+  api.attachPermissionsToRoute('POST /players', ['dynamodb'])
+  api.attachPermissionsToRoute('PATCH /players/{id}', ['dynamodb'])
+  api.attachPermissionsToRoute('DELETE /players/{id}', ['dynamodb'])
 
   stack.addOutputs({
     ApiEndpoint: api.url
