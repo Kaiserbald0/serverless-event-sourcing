@@ -45,5 +45,12 @@ fields: {
 | players/:id |PUT| { name: STRING, role: STRING } | UpdatePlayer
 | players/:id |DELETE| DeletePlayer
 
+TODOs
+
+- Publish event player created / added / deleted
+- Proper partitioning players table
+- Implement query pipeline
+- Event state (?)
+
 `npx sst dev --profile=sst_demo`
 `npx sst remove`

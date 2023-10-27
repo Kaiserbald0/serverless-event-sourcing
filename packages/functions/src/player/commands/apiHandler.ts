@@ -6,13 +6,7 @@ import {
 import { v4 } from 'uuid'
 import { type APIGatewayProxyEvent, type APIGatewayProxyResult } from 'aws-lambda'
 import { Table } from 'sst/node/table'
-
-interface Event {
-  eventId: string
-  eventType: string
-  eventPayload: string
-  eventDate: number
-}
+import { type SourceEvent, SourceEventType } from '../types'
 
 const docClient = DynamoDBDocumentClient.from(new DynamoDBClient({}))
 
@@ -21,7 +15,7 @@ export async function main (event: APIGatewayProxyEvent): Promise<APIGatewayProx
   const eventDate = new Date().getTime()
   const eventContext = event.requestContext as any
   const method = eventContext.http.method
-  let eventType = null
+  let eventType: SourceEventType | null = null
   let eventPayload = null
   switch (method) {
     case 'POST':
@@ -31,15 +25,15 @@ export async function main (event: APIGatewayProxyEvent): Promise<APIGatewayProx
           body: JSON.stringify({ error: 'body is needed' })
         }
       }
-      eventType = 'CreatePlayer'
+      eventType = SourceEventType.PlayerCreated
       eventPayload = JSON.parse(event.body)
       break
     case 'DELETE':
-      eventType = 'DeletePlayer'
+      eventType = SourceEventType.PlayerDeleted
       eventPayload = { playerId: event.pathParameters?.id }
       break
     case 'PATCH':
-      eventType = 'UpdatePlayer'
+      eventType = SourceEventType.PlayerUpdated
       if (event.body == null) {
         return {
           statusCode: 400,
@@ -56,7 +50,7 @@ export async function main (event: APIGatewayProxyEvent): Promise<APIGatewayProx
       body: JSON.stringify({ status: 'failed', message: 'unrecognized method' })
     }
   }
-  const eventObjetc: Event = {
+  const eventObjetc: SourceEvent = {
     eventId,
     eventType,
     eventPayload: JSON.stringify(eventPayload),

@@ -1,8 +1,19 @@
 import { Api, Function, Queue, type StackContext, Table, Topic } from 'sst/constructs'
 
 export function EventSourcingStack ({ stack }: StackContext): void {
+  const playersTable = new Table(stack, 'players', {
+    fields: {
+      playerId: 'string',
+      playerRole: 'string',
+      playerName: 'string',
+      created: 'number',
+      updated: 'number'
+    },
+    primaryIndex: { partitionKey: 'playerId', sortKey: 'playerName' }
+  })
   const eventParserFunction = new Function(stack, 'eventParserFunction', {
-    handler: 'packages/functions/src/player/events/eventParser.main'
+    handler: 'packages/functions/src/player/events/eventParser.main',
+    bind: [playersTable]
   })
   const playerEventsQueue = new Queue(stack, 'PlayerEventsQueue', {
     consumer: eventParserFunction
