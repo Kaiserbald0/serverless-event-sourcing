@@ -27,7 +27,8 @@ export function EventSourcingStack ({ stack }: StackContext): void {
         environment: {
           MONGODB_URI: (process.env.MONGODB_URI ?? ''),
           MONGODB_DB_NAME: (process.env.MONGODB_DB_NAME ?? ''),
-          MONGODB_EVENT_COLLECTION_NAME: (process.env.MONGODB_EVENT_COLLECTION_NAME ?? '')
+          MONGODB_EVENT_COLLECTION_NAME: (process.env.MONGODB_EVENT_COLLECTION_NAME ?? ''),
+          MONGODB_PLAYERS_COLLECTION_NAME: (process.env.MONGODB_PLAYERS_COLLECTION_NAME ?? '')
         }
       }
     },
@@ -35,7 +36,7 @@ export function EventSourcingStack ({ stack }: StackContext): void {
       'POST /players': 'packages/functions/src/player/commands/apiHandler.main',
       'PATCH /players/{id}': 'packages/functions/src/player/commands/apiHandler.main',
       'DELETE /players/{id}': 'packages/functions/src/player/commands/apiHandler.main',
-      'GET /players': 'packages/functions/src/player/queries/getPlayerList.main',
+      'GET /players': 'packages/functions/src/player/queries/getPlayers.main',
       'GET /players/roles': 'packages/functions/src/player/queries/getPlayerRoles.main',
       'GET /players/byrole': 'packages/functions/src/player/queries/getNumberOfPlayersByRoles.main'
     }
