@@ -1,16 +1,14 @@
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import {
-  DynamoDBDocumentClient,
-  PutCommand
-} from '@aws-sdk/lib-dynamodb'
+import AWS from 'aws-sdk'
 import { v4 } from 'uuid'
-import { type APIGatewayProxyEvent, type APIGatewayProxyResult } from 'aws-lambda'
-import { Table } from 'sst/node/table'
+import { type Context, type APIGatewayProxyEvent, type APIGatewayProxyResult } from 'aws-lambda'
 import { type SourceEvent, SourceEventType } from '../types'
+import { Topic } from 'sst/node/topic'
+import { connectToDatabase } from 'src/db/connectToDatabase'
 
-const docClient = DynamoDBDocumentClient.from(new DynamoDBClient({}))
+const sns = new AWS.SNS()
 
-export async function main (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+export async function main (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyResult> {
+  context.callbackWaitsForEmptyEventLoop = false
   const eventId = v4()
   const eventDate = new Date().getTime()
   const eventContext = event.requestContext as any
@@ -47,7 +45,7 @@ export async function main (event: APIGatewayProxyEvent): Promise<APIGatewayProx
   if (eventType === null || eventPayload === null) {
     return {
       statusCode: 400,
-      body: JSON.stringify({ status: 'failed', message: 'unrecognized method' })
+      body: JSON.stringify({ status: 'failed', message: 'unrecognized command' })
     }
   }
   const eventObjetc: SourceEvent = {
@@ -56,20 +54,29 @@ export async function main (event: APIGatewayProxyEvent): Promise<APIGatewayProx
     eventPayload: JSON.stringify(eventPayload),
     eventDate
   }
-  const command = new PutCommand({
-    TableName: Table.events.tableName,
-    Item: eventObjetc
-  })
-  const response = await docClient.send(command)
-  if (response.$metadata.httpStatusCode === 200) {
+  const db = await connectToDatabase()
+  try {
+    if (process.env.MONGODB_EVENT_COLLECTION_NAME === undefined) {
+      throw Error('Define event collection')
+    }
+    await db.collection(process.env.MONGODB_EVENT_COLLECTION_NAME).insertOne(eventObjetc)
+    console.log('[API HANDLER] Event stored')
+    await sns
+      .publish({
+        TopicArn: Topic.PlayerEventsTopic.topicArn,
+        Message: JSON.stringify({ event: eventObjetc }),
+        MessageStructure: 'string'
+      })
+      .promise()
+    console.log('[API HANDLER] Event published')
     return {
       statusCode: 200,
-      body: JSON.stringify({ status: 'successful', data: eventObjetc })
+      body: JSON.stringify({ result: 'success' })
     }
-  }
-  const statusCode = response.$metadata.httpStatusCode ?? 500
-  return {
-    statusCode,
-    body: JSON.stringify({ status: 'failed' })
+  } catch (e) {
+    return {
+      statusCode: 200,
+      body: JSON.stringify(e)
+    }
   }
 }

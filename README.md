@@ -6,8 +6,9 @@ The stack is managed using [SST](https://sst.dev/guide.html)
 
 Pre-requisite (as far I can remember :))
 
-- Node.js 16 or later (node.org)
-- AWS CLI (https://aws.amazon.com/cli/)
+- Mongo Atlas account (<https://www.mongodb.com/>)
+- Node.js 16 or later (<https://nodejs.org/>)
+- AWS CLI (<https://aws.amazon.com/cli/>)
   - `brew install awscli`
   - `aws configure`
 
@@ -48,9 +49,10 @@ fields: {
 TODOs
 
 - Publish event player created / added / deleted
-- Proper partitioning players table
 - Implement query pipeline
 - Event state (?)
+- Validation
+- Implement runner(s)
 
 `npx sst dev --profile=sst_demo`
 `npx sst remove`

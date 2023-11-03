@@ -9,3 +9,11 @@ export interface SourceEvent {
   eventPayload: string
   eventDate: number
 }
+
+export interface Player {
+  playerId: string
+  playerRole: string
+  playerName: string
+  created: number
+  updated: number
+};

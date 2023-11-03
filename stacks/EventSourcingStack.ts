@@ -1,49 +1,34 @@
-import { Api, Function, Queue, type StackContext, Table, Topic } from 'sst/constructs'
+import { Api, Function, Queue, type StackContext, Topic } from 'sst/constructs'
 
 export function EventSourcingStack ({ stack }: StackContext): void {
-  const playersTable = new Table(stack, 'players', {
-    fields: {
-      playerId: 'string',
-      playerRole: 'string',
-      playerName: 'string',
-      created: 'number',
-      updated: 'number'
-    },
-    primaryIndex: { partitionKey: 'playerId', sortKey: 'playerName' }
-  })
   const eventParserFunction = new Function(stack, 'eventParserFunction', {
     handler: 'packages/functions/src/player/events/eventParser.main',
-    bind: [playersTable]
+    environment: {
+      MONGODB_URI: (process.env.MONGODB_URI ?? ''),
+      MONGODB_DB_NAME: (process.env.MONGODB_DB_NAME ?? ''),
+      MONGODB_PLAYERS_COLLECTION_NAME: (process.env.MONGODB_PLAYERS_COLLECTION_NAME ?? '')
+    }
   })
+
   const playerEventsQueue = new Queue(stack, 'PlayerEventsQueue', {
     consumer: eventParserFunction
   })
+
   const playerEventsTopic = new Topic(stack, 'PlayerEventsTopic', {
     subscribers: {
       playerEventQueue: playerEventsQueue
     }
   })
-  const eventTableEventsHandler = new Function(stack, 'eventTableEventsHandlerFunction', {
-    handler: 'packages/functions/src/player/commands/eventTableEventsHandler.main',
-    bind: [playerEventsTopic]
-  })
-  const eventTable = new Table(stack, 'events', {
-    fields: {
-      eventId: 'string',
-      eventType: 'string',
-      eventPayload: 'string',
-      eventDate: 'number'
-    },
-    primaryIndex: { partitionKey: 'eventId', sortKey: 'eventDate' },
-    stream: true,
-    consumers: {
-      playerCommandParserFunction: eventTableEventsHandler
-    }
-  })
+
   const api = new Api(stack, 'Api', {
     defaults: {
       function: {
-        bind: [eventTable]
+        bind: [playerEventsTopic],
+        environment: {
+          MONGODB_URI: (process.env.MONGODB_URI ?? ''),
+          MONGODB_DB_NAME: (process.env.MONGODB_DB_NAME ?? ''),
+          MONGODB_EVENT_COLLECTION_NAME: (process.env.MONGODB_EVENT_COLLECTION_NAME ?? '')
+        }
       }
     },
     routes: {
