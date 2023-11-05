@@ -37,14 +37,9 @@ export function EventSourcingStack ({ stack }: StackContext): void {
       'PATCH /players/{id}': 'packages/functions/src/player/commands/apiHandler.main',
       'DELETE /players/{id}': 'packages/functions/src/player/commands/apiHandler.main',
       'GET /players': 'packages/functions/src/player/queries/getPlayers.main',
-      'GET /players/roles': 'packages/functions/src/player/queries/getPlayerRoles.main',
-      'GET /players/byrole': 'packages/functions/src/player/queries/getNumberOfPlayersByRoles.main'
+      'GET /players/roles': 'packages/functions/src/player/queries/getPlayerRoles.main'
     }
   })
-
-  api.attachPermissionsToRoute('POST /players', ['dynamodb'])
-  api.attachPermissionsToRoute('PATCH /players/{id}', ['dynamodb'])
-  api.attachPermissionsToRoute('DELETE /players/{id}', ['dynamodb'])
 
   stack.addOutputs({
     ApiEndpoint: api.url

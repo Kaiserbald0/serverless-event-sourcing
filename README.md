@@ -1,6 +1,6 @@
-# serverless-event-sourcing example
+# serverless-event-sourcing
 
-This is a experiment to try a simple serverless event sourcing API on AWS.
+This is a experiment to try a simple serverless event sourcing API on AWS using Mongo as DB.
 
 The stack is managed using [SST](https://sst.dev/guide.html)
 
@@ -37,7 +37,6 @@ fields: {
 |----------|
 | GetPlayerList |
 | GetPlayerRoles  |
-| GetNumberOfPlayerByRoles |
 
 | APIs  |  | | |
 |----------|:-------------:|------|- |
@@ -45,11 +44,12 @@ fields: {
 | players  |POST| {name: STRING, role: STRING }  | CreatePlayer
 | players/:id |PUT| { name: STRING, role: STRING } | UpdatePlayer
 | players/:id |DELETE| DeletePlayer
+| players/ |GET| GetPlayers
+| players/roles |GET| GetRoles
 
 TODOs
 
 - Publish event player created / added / deleted
-- Implement query pipeline
 - Event state (?)
 - Validation
 - Implement runner(s)
