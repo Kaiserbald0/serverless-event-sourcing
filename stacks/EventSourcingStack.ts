@@ -1,4 +1,4 @@
-import { Api, Function, Queue, type StackContext, Topic } from 'sst/constructs'
+import { Api, Function, Queue, type StackContext, Topic, RemixSite } from 'sst/constructs'
 
 export function EventSourcingStack ({ stack }: StackContext): void {
   const eventParserFunction = new Function(stack, 'eventParserFunction', {
@@ -41,7 +41,15 @@ export function EventSourcingStack ({ stack }: StackContext): void {
     }
   })
 
+  const site = new RemixSite(stack, 'FrontendSite', {
+    path: 'remixFe/',
+    environment: {
+      API_URL: api.url
+    }
+  })
+
   stack.addOutputs({
-    ApiEndpoint: api.url
+    ApiEndpoint: api.url,
+    URL: site.url ?? 'localhost'
   })
 }

@@ -1,6 +1,6 @@
 # serverless-event-sourcing
 
-This is a experiment to try a simple serverless event sourcing API on AWS using Mongo as DB.
+This is a experiment to try a simple serverless event sourcing API on AWS using Mongo as DB with a RemixJs frontend
 
 The stack is managed using [SST](https://sst.dev/guide.html)
 
@@ -12,11 +12,14 @@ Pre-requisite (as far I can remember :))
   - `brew install awscli`
   - `aws configure`
 
+Stack
+
+- APIs: API Gateway
+- Frontend: RemixJs
+
 Events
 
-Table for event
-
-```
+```JSON
 fields: {
   eventId: string
   eventType: string
@@ -56,3 +59,6 @@ TODOs
 
 `npx sst dev --profile=sst_demo`
 `npx sst remove`
+
+Start remix fe
+`npm run dev`
