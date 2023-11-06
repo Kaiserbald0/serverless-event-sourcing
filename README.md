@@ -16,6 +16,10 @@ Stack
 
 - APIs: API Gateway
 - Frontend: RemixJs
+  - [Remix Home](https://remix.run/)
+  - [SST Stack for Remix](https://docs.sst.dev/constructs/RemixSite)
+- Database: Mongo on Atlas
+  - [SST Connection Guide](https://sst.dev/examples/how-to-use-mongodb-atlas-in-your-serverless-app.html)
 
 Events
 

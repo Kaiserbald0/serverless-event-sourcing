@@ -1,5 +1,6 @@
-import type { MetaFunction } from "@remix-run/node";
+import { json, type MetaFunction } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
+import { format } from "date-fns";
 
 interface Players {
   _id: string,
@@ -12,14 +13,14 @@ interface Players {
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "New Remix App" },
-    { name: "description", content: "Welcome to Remix!" },
+    { title: "Event sourcing example" },
+    { name: "description", content: "Event sourcing frontend" },
   ];
 };
 
-export async function loader() {
-  console.log(process.env.API_URL);
-  return {"players":[{"_id":"6544ba28f32405b4db5b2dd6","created":1699002920028,"updated":1699002920028,"playerId":"8db2555d-ba53-4942-99be-18910f65ed0a","playerName":"player","playerRole":"carry"}]};
+export async function loader():Promise<{ players: Players[]; }> {
+  const result = await fetch(`${process.env.API_URL}/players`);
+  return await result.json();
 }
 
 export default function Index() {
@@ -29,21 +30,21 @@ export default function Index() {
       <h1>Event sourcing experiment :D</h1>
       <table>
         <thead>
-          <td>ID</td>
-          <td>Name</td>
-          <td>Role</td>
-          <td>Last updated</td>
-          <td>Created</td>
-          <td> - </td>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Role</th>
+          <th>Last updated</th>
+          <th>Created</th>
+          <th> </th>
         </thead>
-        {players.map(player => {
-          return         <tr>
+        {players.map((player,i) => {
+          return <tr key={`tr_${i}`}>
           <td>{player.playerId}</td>
           <td>{player.playerName}</td>
           <td>{player.playerRole}</td>
-          <td>{player.updated}</td>
-          <td>{player.created}</td>
-          <td> - </td>
+          <td>{format(new Date(player.created), 'MM/dd/yyyy')}</td>
+          <td>{format(new Date(player.updated), 'MM/dd/yyyy')}</td>
+          <td> <button>Edit</button> <button>Delete</button> </td>
         </tr>
         })}
       </table>
