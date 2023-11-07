@@ -35,8 +35,8 @@ export default function Player() {
       <Form method="POST">
         <input type="string" name="name" value={player.playerName} /> <br />
         <input type="string" name="role" value={player.playerRole} /> <br />
-        C: {format(new Date(player.created), 'MM/dd/yyyy')} <br />
-        U: {format(new Date(player.updated), 'MM/dd/yyyy')} <br />
+        C: {format(new Date(player.created), 'dd/MM/yyyy')} <br />
+        U: {format(new Date(player.updated), 'dd/MM/yyyy')} <br />
         <button type="submit">UPDATE</button>
       </Form>
       <Form method="DELETE">

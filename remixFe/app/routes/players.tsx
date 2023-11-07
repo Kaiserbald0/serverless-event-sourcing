@@ -98,8 +98,8 @@ export default function Index() {
           return <tr key={`tr_${i}`}>
           <td>{player.playerName}</td>
           <td>{player.playerRole}</td>
-          <td>{format(new Date(player.created), 'MM/dd/yyyy')}</td>
-          <td>{format(new Date(player.updated), 'MM/dd/yyyy')}</td>
+          <td>{format(new Date(player.created), 'dd/MM/yyyy')}</td>
+          <td>{format(new Date(player.updated), 'dd/MM/yyyy')}</td>
           <td><Link to={`player/${player.playerId}`}>Edit</Link> </td>
         </tr>
         })}
