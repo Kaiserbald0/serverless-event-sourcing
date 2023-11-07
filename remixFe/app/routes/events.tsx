@@ -3,13 +3,17 @@ import { Form, Link, useActionData, useFetcher, useLoaderData } from "@remix-run
 import { format } from "date-fns";
 import TopMenu from "~/components/topMenu";
 
-export interface IPlayer {
+export enum SourceEventType {
+  PlayerCreated = 'PlayerCreated',
+  PlayerUpdated = 'PlayerUpdated',
+  PlayerDeleted = 'PlayerDeleted'
+}
+export interface ISourceEvent {
   _id: string,
-  created: number,
-  updated: number,
-  playerId: string,
-  playerName: string,
-  playerRole: string,  
+  eventId: string
+  eventType: SourceEventType
+  eventPayload: string
+  eventDate: number
 }
 
 export const meta: MetaFunction = () => {
@@ -19,14 +23,14 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-export const loader = async():Promise<{ players: IPlayer[]; }> => {
-  const result = await fetch(`${process.env.API_URL}/players`);
+export const loader = async():Promise<{ events: ISourceEvent[]; }> => {
+  const result = await fetch(`${process.env.API_URL}/events`);
   return await result.json();
 }
 
 export default function Index() {
   const fetcher = useFetcher();
-  const { players } = useLoaderData<typeof loader>();
+  const { events } = useLoaderData<typeof loader>();
   return (
     <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.8" }}>
       <TopMenu />
@@ -34,21 +38,17 @@ export default function Index() {
       <table>
         <thead>
           <tr>
-          <th>Name</th>
-          <th>Role</th>
-          <th>Last updated</th>
-          <th>Created</th>
-          <th> </th>
+          <th>Event Type</th>
+          <th>Payload</th>
+          <th>Date</th>
           </tr>
         </thead>
         <tbody>
-        {players.map((player,i) => {
+        {events.map((event,i) => {
           return <tr key={`tr_${i}`}>
-          <td>{player.playerName}</td>
-          <td>{player.playerRole}</td>
-          <td>{format(new Date(player.created), 'MM/dd/yyyy')}</td>
-          <td>{format(new Date(player.updated), 'MM/dd/yyyy')}</td>
-          <td><Link to={`player/${player.playerId}`}>Edit</Link> </td>
+          <td>{event.eventType}</td>
+          <td>{event.eventPayload}</td>
+          <td>{format(new Date(event.eventDate), 'MM/dd/yyyy hh:mm:ss')}</td>
         </tr>
         })}
         </tbody>

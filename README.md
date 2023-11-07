@@ -44,6 +44,7 @@ fields: {
 |----------|
 | GetPlayerList |
 | GetPlayerRoles  |
+| GetEvents  |
 
 | APIs  |  | | |
 |----------|:-------------:|------|- |
@@ -51,8 +52,9 @@ fields: {
 | players  |POST| {name: STRING, role: STRING }  | CreatePlayer
 | players/:id |PUT| { name: STRING, role: STRING } | UpdatePlayer
 | players/:id |DELETE| DeletePlayer
-| players/ |GET| GetPlayers
-| players/roles |GET| GetRoles
+| players/ |GET|
+| players/roles |GET|
+| events/ |GET|
 
 TODOs
 
@@ -60,6 +62,7 @@ TODOs
 - Event state (?)
 - Validation
 - Implement runner(s)
+- Time travelling
 
 `npx sst dev --profile=sst_demo`
 `npx sst remove`
