@@ -1,7 +1,7 @@
 import { ActionFunctionArgs, json, redirect, type MetaFunction } from "@remix-run/node";
 import { Form, Link, useActionData, useFetcher, useLoaderData } from "@remix-run/react";
 import { format } from "date-fns";
-import TopMenu from "~/components/topMenu";
+import TopMenu from "~/components/TopMenu";
 
 export enum SourceEventType {
   PlayerCreated = 'PlayerCreated',

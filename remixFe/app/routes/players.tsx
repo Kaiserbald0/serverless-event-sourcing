@@ -1,7 +1,8 @@
-import { ActionFunctionArgs, json, redirect, type MetaFunction } from "@remix-run/node";
-import { Form, Link, useActionData, useFetcher, useLoaderData } from "@remix-run/react";
+import { ActionFunctionArgs, type MetaFunction } from "@remix-run/node";
+import { Link, useFetcher, useLoaderData } from "@remix-run/react";
 import { format } from "date-fns";
-import TopMenu from "~/components/topMenu";
+import ShowErrors from "~/components/ShowErrors";
+import TopMenu from "~/components/TopMenu";
 
 export interface IPlayer {
   _id: string,
@@ -63,10 +64,9 @@ export const action = async({
 }
 
 export default function Index() {
-  const fetcher = useFetcher();
+  const fetcher = useFetcher<typeof action>();
   const { players } = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
-  const isSubmitting = fetcher.state === "submitting";
+  const isSubmitting = fetcher.state !== "idle";
   return (
     <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.8" }}>
       <TopMenu />
@@ -77,12 +77,7 @@ export default function Index() {
         <button type="submit" disabled={isSubmitting}>Add</button>
         {isSubmitting ? 'Please wait' : ''}
       </fetcher.Form>
-      <div>
-      {Number(actionData?.errors?.length) > 0 ? actionData?.errors.map((e:any, i:number) => (
-          <em key={`em-${i}`} >{e}</em>
-        )
-      ) : null}
-      </div>
+      <ShowErrors errors={fetcher.data?.errors} />
       <table>
         <thead>
           <tr>
@@ -100,7 +95,7 @@ export default function Index() {
           <td>{player.playerRole}</td>
           <td>{format(new Date(player.created), 'dd/MM/yyyy')}</td>
           <td>{format(new Date(player.updated), 'dd/MM/yyyy')}</td>
-          <td><Link to={`player/${player.playerId}`}>Edit</Link> </td>
+          <td><Link to={`/player/${player.playerId}`}>Edit</Link> </td>
         </tr>
         })}
         </tbody>

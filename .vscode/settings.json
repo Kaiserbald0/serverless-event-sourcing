@@ -1,5 +1,6 @@
 {
   "search.exclude": {
     "**/.sst": true
-  }
+  },
+  "workbench.colorTheme": "Monokai Dimmed"
 }
