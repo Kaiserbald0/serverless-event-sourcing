@@ -1,4 +1,4 @@
-import { Api, Function, Queue, type StackContext, Topic, RemixSite } from 'sst/constructs'
+import { Api, Function, Queue, type StackContext, Topic, RemixSite, WebSocketApi, Table } from 'sst/constructs'
 
 export function EventSourcingStack ({ stack }: StackContext): void {
   const eventParserFunction = new Function(stack, 'eventParserFunction', {
@@ -42,6 +42,26 @@ export function EventSourcingStack ({ stack }: StackContext): void {
     }
   })
 
+  const wsConnectionTable = new Table(stack, 'WSConnections', {
+    fields: {
+      id: 'string'
+    },
+    primaryIndex: { partitionKey: 'id' }
+  })
+  const wsApi = new WebSocketApi(stack, 'WSApi', {
+    defaults: {
+      function: {
+        bind: [wsConnectionTable]
+      }
+    },
+    routes: {
+      $connect: 'packages/functions/src/ws/connect.main',
+      $default: 'packages/functions/src/ws/default.main',
+      $disconnect: 'packages/functions/src/ws/disconnect.main',
+      sendMessage: 'packages/functions/src/ws/sendMessage.main'
+    }
+  })
+
   const site = new RemixSite(stack, 'FrontendSite', {
     path: 'remixFe/',
     environment: {
@@ -50,6 +70,7 @@ export function EventSourcingStack ({ stack }: StackContext): void {
   })
 
   stack.addOutputs({
+    WSEndpoint: wsApi.url,
     ApiEndpoint: api.url,
     URL: site.url ?? 'localhost'
   })
