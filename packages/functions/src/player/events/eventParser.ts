@@ -1,7 +1,8 @@
 import { type SQSEvent } from 'aws-lambda'
 import { SourceEventType, type SourceEvent, type Player } from '../types'
 import { v4 } from 'uuid'
-import { connectToDatabase } from 'src/db/connectToDatabase'
+import { connectToDatabase } from 'src/modules/db/connectToDatabase'
+import { postMessage } from 'src/ws/modules/postMessage'
 
 export async function main (event: SQSEvent): Promise<void> {
   console.log('[SQS EVENT PARSER] Event received')
@@ -27,6 +28,9 @@ export async function main (event: SQSEvent): Promise<void> {
           try {
             await db.collection(process.env.MONGODB_PLAYERS_COLLECTION_NAME).insertOne(playerToAdd)
             console.log('[SQS EVENT PARSER] Event PlayerCreated parsed')
+            await postMessage({
+              message: 'Player Created'
+            })
             return
           } catch (e) {
             console.error(e)
@@ -52,6 +56,9 @@ export async function main (event: SQSEvent): Promise<void> {
               }
             )
             console.log('[SQS EVENT PARSER] Event PlayerUpdated parsed')
+            await postMessage({
+              message: 'Player Updated'
+            })
             return
           } catch (e) {
             console.error(e)
@@ -71,6 +78,9 @@ export async function main (event: SQSEvent): Promise<void> {
               }
             )
             console.log('[SQS EVENT PARSER] Event PlayerDeleted parsed')
+            await postMessage({
+              message: 'Player Deleted'
+            })
             return
           } catch (e) {
             console.error(e)

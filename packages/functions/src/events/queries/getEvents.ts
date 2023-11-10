@@ -1,5 +1,5 @@
 import { type Context, type APIGatewayProxyEvent, type APIGatewayProxyResult } from 'aws-lambda'
-import { connectToDatabase } from 'src/db/connectToDatabase'
+import { connectToDatabase } from 'src/modules/db/connectToDatabase'
 
 export async function main (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyResult> {
   context.callbackWaitsForEmptyEventLoop = false

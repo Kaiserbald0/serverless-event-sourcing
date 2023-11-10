@@ -58,14 +58,14 @@ fields: {
 
 TODOs
 
-- Publish event player created / added / deleted
+- Listen to events on the remix app
 - Event state (?)
 - Validation
 - Implement runner(s)
 - Time travelling
 
 `npx sst dev --profile=sst_demo`
-`npx sst remove`
+`npx sst remove  --profile=sst_demo`
 
 Start remix fe
 `npm run dev`
