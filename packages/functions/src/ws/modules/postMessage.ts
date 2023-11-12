@@ -2,7 +2,7 @@ import { ApiGatewayManagementApi, DynamoDB } from 'aws-sdk'
 import { Table } from 'sst/node/table'
 import { WebSocketApi } from 'sst/node/websocket-api'
 
-export const postMessage = async ({ message}: { message: string }): Promise<boolean> => {
+export const postMessage = async ({ message }: { message: string }): Promise<boolean> => {
   const tableName = Table.WSConnections.tableName
   const wsEndpoint = WebSocketApi.WSApi.httpsUrl
   const dynamoDb = new DynamoDB.DocumentClient()
