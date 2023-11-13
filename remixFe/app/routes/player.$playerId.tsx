@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { IPlayer } from "./players";
 import TopMenu from "~/components/TopMenu";
 import ShowErrors from "~/components/ShowErrors";
+import wsConnection from "~/components/websocket.server";
 
 export const meta: MetaFunction = () => {
   return [
@@ -20,6 +21,7 @@ export const loader = async({ params }:LoaderFunctionArgs):Promise<IPlayer | und
 
 export const action = async({request, params}: ActionFunctionArgs) => {
   const errors: string[] =[]
+  const socket = wsConnection
   if (request.method === "DELETE") {
     const playerId = String(params.playerId);
     if (!playerId) {
@@ -70,7 +72,37 @@ export const action = async({request, params}: ActionFunctionArgs) => {
     });
     const result = (await response.json())
     if (result.result === "success") {
-      return null;
+      // You can listen for WebSocket messages here without overriding the onmessage handler
+      const waitForWebSocketMessage = new Promise((resolve, reject) => {
+        const onMessageHandler = (e: any) => {
+          const message = e.data;
+          console.log('message', message);
+          if (message === 'Player Updated') {
+            resolve(message);
+          }
+        };
+        // Attach the temporary onmessage handler
+        socket.addEventListener('message', onMessageHandler);
+        // Clean up the event listener after the message is received or on timeout
+        const timeoutMs = 5000; // 5 seconds timeout, adjust as needed
+        setTimeout(() => {
+          socket.removeEventListener('message', onMessageHandler);
+          reject('WebSocket timeout');
+        }, timeoutMs);
+      });
+      try {
+        const message = await waitForWebSocketMessage;
+        // Continue with any additional processing based on the WebSocket message
+        console.log('Received WebSocket message:', message);
+        // ... your additional processing ...
+        return null
+      } catch (error) {
+        // Handle the case where the WebSocket message is not received within the timeout
+        console.error('WebSocket error or timeout:', error);
+        return {
+          errors: ['Unable to connect to WebSocket or timeout'],
+        };
+      }
     }
     return {
       errors: ['Something went wrong with APIs']

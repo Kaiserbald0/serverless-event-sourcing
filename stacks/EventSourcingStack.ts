@@ -64,7 +64,8 @@ export function EventSourcingStack ({ stack }: StackContext): void {
   const site = new RemixSite(stack, 'FrontendSite', {
     path: 'remixFe/',
     environment: {
-      API_URL: api.url
+      API_URL: api.url,
+      WEBSOCKET_URL: wsApi.url
     }
   })
 
