@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { IPlayer } from "./players";
 import TopMenu from "~/components/TopMenu";
 import ShowErrors from "~/components/ShowErrors";
-import wsConnection from "~/components/websocket.server";
+import waitForWebSocketMessage from "~/components/websocket.server";
 
 export const meta: MetaFunction = () => {
   return [
@@ -21,7 +21,6 @@ export const loader = async({ params }:LoaderFunctionArgs):Promise<IPlayer | und
 
 export const action = async({request, params}: ActionFunctionArgs) => {
   const errors: string[] =[]
-  const socket = wsConnection
   if (request.method === "DELETE") {
     const playerId = String(params.playerId);
     if (!playerId) {
@@ -35,14 +34,22 @@ export const action = async({request, params}: ActionFunctionArgs) => {
     });
     const result = (await response.json())
     if (result.result === "success") {
-      return redirect('/players');
+      try {
+        await waitForWebSocketMessage('PlayerDeleted');
+        return redirect('/players');
+      } catch (error) {
+        console.error('WebSocket error or timeout:', error);
+        return {
+          errors: ['Unable to connect to WebSocket or timeout'],
+        };
+      }
     }
     return {
       errors: ['Something went wrong with APIs']
     }
 
   }
-  if (request.method === "POST") {
+  else if (request.method === "PATCH") {
     const formData = await request.formData();
     const name = String(formData.get("name"));
     const role = String(formData.get("role"));
@@ -72,44 +79,21 @@ export const action = async({request, params}: ActionFunctionArgs) => {
     });
     const result = (await response.json())
     if (result.result === "success") {
-      // You can listen for WebSocket messages here without overriding the onmessage handler
-      const waitForWebSocketMessage = new Promise((resolve, reject) => {
-        const onMessageHandler = (e: any) => {
-          const message = e.data;
-          console.log('message', message);
-          if (message === 'Player Updated') {
-            resolve(message);
-          }
-        };
-        // Attach the temporary onmessage handler
-        socket.addEventListener('message', onMessageHandler);
-        // Clean up the event listener after the message is received or on timeout
-        const timeoutMs = 5000; // 5 seconds timeout, adjust as needed
-        setTimeout(() => {
-          socket.removeEventListener('message', onMessageHandler);
-          reject('WebSocket timeout');
-        }, timeoutMs);
-      });
       try {
-        const message = await waitForWebSocketMessage;
-        // Continue with any additional processing based on the WebSocket message
-        console.log('Received WebSocket message:', message);
-        // ... your additional processing ...
+        await waitForWebSocketMessage('PlayerUpdated');
         return null
       } catch (error) {
-        // Handle the case where the WebSocket message is not received within the timeout
         console.error('WebSocket error or timeout:', error);
         return {
           errors: ['Unable to connect to WebSocket or timeout'],
         };
       }
     }
-    return {
-      errors: ['Something went wrong with APIs']
-    }
   }
-  return {
-    errors: ['Method not supported']
+  else {
+    return {
+      errors: ['Method not supported']
+    }      
   }
 }
 
@@ -121,7 +105,7 @@ export default function Player() {
     <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.8" }}>
       <TopMenu />
       <hr />
-      <fetcherUpdate.Form method="POST">
+      <fetcherUpdate.Form method="PATCH">
         <input type="string" name="name" defaultValue={player.playerName} /> <br />
         <input type="string" name="role" defaultValue={player.playerRole} /> <br />
         C: {format(new Date(player.created), 'dd/MM/yyyy')} <br />

@@ -3,6 +3,7 @@ import { Link, useFetcher, useLoaderData } from "@remix-run/react";
 import { format } from "date-fns";
 import ShowErrors from "~/components/ShowErrors";
 import TopMenu from "~/components/TopMenu";
+import waitForWebSocketMessage from "~/components/websocket.server";
 
 export interface IPlayer {
   _id: string,
@@ -56,7 +57,15 @@ export const action = async({
   });
   const result = (await response.json())
   if (result.result === "success") {
-    return null;
+    try {
+      await waitForWebSocketMessage('PlayerCreated');
+      return null
+    } catch (error) {
+      console.error('WebSocket error or timeout:', error);
+      return {
+        errors: ['Unable to connect to WebSocket or timeout'],
+      };
+    }
   }
   return {
     errors: ['Something went wrong with APIs']

@@ -58,7 +58,6 @@ fields: {
 
 TODOs
 
-- Listen to events on the remix app
 - Event state (?)
 - Validation
 - Implement runner(s)

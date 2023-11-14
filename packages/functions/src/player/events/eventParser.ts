@@ -29,7 +29,7 @@ export async function main (event: SQSEvent): Promise<void> {
             await db.collection(process.env.MONGODB_PLAYERS_COLLECTION_NAME).insertOne(playerToAdd)
             console.log('[SQS EVENT PARSER] Event PlayerCreated parsed')
             await postMessage({
-              message: 'Player Created'
+              message: JSON.stringify({ type: 'PlayerCreated', message: 'success' })
             })
             return
           } catch (e) {
@@ -57,7 +57,7 @@ export async function main (event: SQSEvent): Promise<void> {
             )
             console.log('[SQS EVENT PARSER] Event PlayerUpdated parsed')
             await postMessage({
-              message: 'Player Updated'
+              message: JSON.stringify({ type: 'PlayerUpdated', message: 'success' })
             })
             return
           } catch (e) {
@@ -79,7 +79,7 @@ export async function main (event: SQSEvent): Promise<void> {
             )
             console.log('[SQS EVENT PARSER] Event PlayerDeleted parsed')
             await postMessage({
-              message: 'Player Deleted'
+              message: JSON.stringify({ type: 'PlayerDeleted', message: 'success' })
             })
             return
           } catch (e) {
