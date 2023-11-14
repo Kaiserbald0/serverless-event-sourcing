@@ -1,4 +1,5 @@
 import WebSocket from 'ws';
+import { SourceEventType } from '../../../types/events';
 
 class WebSocketService {
   private static instance: WebSocketService;
@@ -25,7 +26,7 @@ class WebSocketService {
         throw new Error('Unsupported message data type');
       }
 
-      const type = messageData.type;
+      const type = messageData.type as SourceEventType;
 
       // Call the specific message handler if registered
       if (this.messageHandlers.has(type)) {
@@ -42,7 +43,7 @@ class WebSocketService {
     return WebSocketService.instance;
   }
 
-  public addMessageHandler(type: string, handler: (data: any) => void): void {
+  public addMessageHandler(type: SourceEventType, handler: (data: any) => void): void {
     this.messageHandlers.set(type, handler);
   }
 
@@ -53,7 +54,7 @@ class WebSocketService {
   }
 }
 
-const setupWebSocket = (eventType: string, onSuccess: Function, onError: Function) => {
+const setupWebSocket = (eventType: SourceEventType, onSuccess: Function, onError: Function) => {
   if (!process.env.WEBSOCKET_URL) {
     throw Error('WebSocket URL not set');
   }
@@ -68,7 +69,7 @@ const setupWebSocket = (eventType: string, onSuccess: Function, onError: Functio
   });
 };
 
-const waitForWebSocketMessage = (eventType: string) =>
+const waitForWebSocketMessage = (eventType: SourceEventType) =>
   new Promise((resolve, reject) => {
     setupWebSocket(eventType, resolve, reject);
   });

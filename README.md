@@ -59,7 +59,6 @@ fields: {
 TODOs
 
 - Event state (?)
-- Validation
 - Implement runner(s)
 - Time travelling
 

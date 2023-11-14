@@ -3,6 +3,7 @@ export enum SourceEventType {
   PlayerUpdated = 'PlayerUpdated',
   PlayerDeleted = 'PlayerDeleted'
 }
+
 export interface SourceEvent {
   eventId: string
   eventType: SourceEventType
@@ -10,10 +11,6 @@ export interface SourceEvent {
   eventDate: number
 }
 
-export interface Player {
-  playerId: string
-  playerRole: string
-  playerName: string
-  created: number
-  updated: number
-};
+export interface SourceEventResource extends SourceEvent {
+  _id: string
+}

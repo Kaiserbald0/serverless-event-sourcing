@@ -1,20 +1,8 @@
-import { ActionFunctionArgs, json, redirect, type MetaFunction } from "@remix-run/node";
-import { Form, Link, useActionData, useFetcher, useLoaderData } from "@remix-run/react";
+import { type MetaFunction } from "@remix-run/node";
+import { useFetcher, useLoaderData } from "@remix-run/react";
 import { format } from "date-fns";
 import TopMenu from "~/components/TopMenu";
-
-export enum SourceEventType {
-  PlayerCreated = 'PlayerCreated',
-  PlayerUpdated = 'PlayerUpdated',
-  PlayerDeleted = 'PlayerDeleted'
-}
-export interface ISourceEvent {
-  _id: string,
-  eventId: string
-  eventType: SourceEventType
-  eventPayload: string
-  eventDate: number
-}
+import { SourceEventResource } from '../../../types/events'
 
 export const meta: MetaFunction = () => {
   return [
@@ -23,7 +11,7 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-export const loader = async():Promise<{ events: ISourceEvent[]; }> => {
+export const loader = async():Promise<{ events: SourceEventResource[]; }> => {
   const result = await fetch(`${process.env.API_URL}/events`);
   return await result.json();
 }
@@ -41,6 +29,7 @@ export default function Index() {
           <th>Event Type</th>
           <th>Payload</th>
           <th>Date</th>
+          <th></th>
           </tr>
         </thead>
         <tbody>
@@ -49,6 +38,7 @@ export default function Index() {
           <td>{event.eventType}</td>
           <td>{event.eventPayload}</td>
           <td>{format(new Date(event.eventDate), 'MM/dd/yyyy hh:mm:ss')}</td>
+          <td></td>
         </tr>
         })}
         </tbody>

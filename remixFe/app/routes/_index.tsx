@@ -1,16 +1,5 @@
-import { ActionFunctionArgs, json, redirect, type MetaFunction } from "@remix-run/node";
-import { Form, Link, Outlet, useActionData, useFetcher, useLoaderData } from "@remix-run/react";
-import { format } from "date-fns";
+import { type MetaFunction } from "@remix-run/node";
 import TopMenu from "~/components/TopMenu";
-
-export interface IPlayer {
-  _id: string,
-  created: number,
-  updated: number,
-  playerId: string,
-  playerName: string,
-  playerRole: string,  
-}
 
 export const meta: MetaFunction = () => {
   return [

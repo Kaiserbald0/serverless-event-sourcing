@@ -4,15 +4,8 @@ import { format } from "date-fns";
 import ShowErrors from "~/components/ShowErrors";
 import TopMenu from "~/components/TopMenu";
 import waitForWebSocketMessage from "~/components/websocket.server";
-
-export interface IPlayer {
-  _id: string,
-  created: number,
-  updated: number,
-  playerId: string,
-  playerName: string,
-  playerRole: string,  
-}
+import { SourceEventType } from '../../../types/events'
+import { PlayerResource } from '../../../types/players'
 
 export const meta: MetaFunction = () => {
   return [
@@ -21,7 +14,7 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-export const loader = async():Promise<{ players: IPlayer[]; }> => {
+export const loader = async():Promise<{ players: PlayerResource[]; }> => {
   const result = await fetch(`${process.env.API_URL}/players`);
   return await result.json();
 }
@@ -58,7 +51,7 @@ export const action = async({
   const result = (await response.json())
   if (result.result === "success") {
     try {
-      await waitForWebSocketMessage('PlayerCreated');
+      await waitForWebSocketMessage(SourceEventType.PlayerCreated);
       return null
     } catch (error) {
       console.error('WebSocket error or timeout:', error);

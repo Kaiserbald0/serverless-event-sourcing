@@ -1,10 +1,11 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect, type MetaFunction } from "@remix-run/node";
 import { Link, useFetcher, useLoaderData } from "@remix-run/react";
 import { format } from "date-fns";
-import { IPlayer } from "./players";
 import TopMenu from "~/components/TopMenu";
 import ShowErrors from "~/components/ShowErrors";
 import waitForWebSocketMessage from "~/components/websocket.server";
+import { SourceEventType } from '../../../types/events'
+import { PlayerResource } from '../../../types/players'
 
 export const meta: MetaFunction = () => {
   return [
@@ -13,9 +14,9 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-export const loader = async({ params }:LoaderFunctionArgs):Promise<IPlayer | undefined> => {
+export const loader = async({ params }:LoaderFunctionArgs):Promise<PlayerResource | undefined> => {
   const result = await fetch(`${process.env.API_URL}/players`);
-  const jsonResult: {players: IPlayer[]} = await result.json();
+  const jsonResult: {players: PlayerResource[]} = await result.json();
   return jsonResult.players.find(player => player.playerId === params.playerId)
 }
 
@@ -35,7 +36,7 @@ export const action = async({request, params}: ActionFunctionArgs) => {
     const result = (await response.json())
     if (result.result === "success") {
       try {
-        await waitForWebSocketMessage('PlayerDeleted');
+        await waitForWebSocketMessage(SourceEventType.PlayerDeleted);
         return redirect('/players');
       } catch (error) {
         console.error('WebSocket error or timeout:', error);
@@ -80,7 +81,7 @@ export const action = async({request, params}: ActionFunctionArgs) => {
     const result = (await response.json())
     if (result.result === "success") {
       try {
-        await waitForWebSocketMessage('PlayerUpdated');
+        await waitForWebSocketMessage(SourceEventType.PlayerUpdated);
         return null
       } catch (error) {
         console.error('WebSocket error or timeout:', error);
