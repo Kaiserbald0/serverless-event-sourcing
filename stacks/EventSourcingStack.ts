@@ -1,48 +1,25 @@
-import { Api, Function, Queue, type StackContext, Topic, RemixSite, WebSocketApi, Table } from 'sst/constructs'
+import { Api, type StackContext, RemixSite, use } from 'sst/constructs'
+import { WebSocketStack } from './WebSocketStack'
+import { EventSourcingPlayerStack } from './EventSourcingPlayerStack'
+import { TimeTravelStack } from './TimeTravelStack'
 
 export function EventSourcingStack ({ stack }: StackContext): void {
-  const wsConnectionTable = new Table(stack, 'WSConnections', {
-    fields: {
-      id: 'string'
-    },
-    primaryIndex: { partitionKey: 'id' }
-  })
-  const wsApi = new WebSocketApi(stack, 'WSApi', {
-    defaults: {
-      function: {
-        bind: [wsConnectionTable]
-      }
-    },
-    routes: {
-      $connect: 'packages/functions/src/ws/connect.main',
-      $disconnect: 'packages/functions/src/ws/disconnect.main'
-    }
-  })
+  const {
+    wsApi
+  } = use(WebSocketStack)
 
-  const eventParserFunction = new Function(stack, 'eventParserFunction', {
-    handler: 'packages/functions/src/player/events/eventParser.main',
-    bind: [wsApi, wsConnectionTable],
-    environment: {
-      MONGODB_URI: (process.env.MONGODB_URI ?? ''),
-      MONGODB_DB_NAME: (process.env.MONGODB_DB_NAME ?? ''),
-      MONGODB_PLAYERS_COLLECTION_NAME: (process.env.MONGODB_PLAYERS_COLLECTION_NAME ?? '')
-    }
-  })
+  const {
+    playerEventsTopic
+  } = use(EventSourcingPlayerStack)
 
-  const playerEventsQueue = new Queue(stack, 'PlayerEventsQueue', {
-    consumer: eventParserFunction
-  })
-
-  const playerEventsTopic = new Topic(stack, 'PlayerEventsTopic', {
-    subscribers: {
-      playerEventQueue: playerEventsQueue
-    }
-  })
+  const {
+    timeTravelTopic
+  } = use(TimeTravelStack)
 
   const api = new Api(stack, 'Api', {
     defaults: {
       function: {
-        bind: [playerEventsTopic],
+        bind: [playerEventsTopic, timeTravelTopic],
         environment: {
           MONGODB_URI: (process.env.MONGODB_URI ?? ''),
           MONGODB_DB_NAME: (process.env.MONGODB_DB_NAME ?? ''),
@@ -57,7 +34,8 @@ export function EventSourcingStack ({ stack }: StackContext): void {
       'DELETE /players/{id}': 'packages/functions/src/player/commands/apiHandler.main',
       'GET /players': 'packages/functions/src/player/queries/getPlayers.main',
       'GET /players/roles': 'packages/functions/src/player/queries/getPlayerRoles.main',
-      'GET /events': 'packages/functions/src/events/queries/getEvents.main'
+      'GET /events': 'packages/functions/src/events/queries/getEvents.main',
+      'POST /events/timetravel': 'packages/functions/src/events/timetravelling/apiHandler.main'
     }
   })
 

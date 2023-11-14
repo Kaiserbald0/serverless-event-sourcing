@@ -1,9 +1,8 @@
 import { type SQSEvent } from 'aws-lambda'
-import { SourceEventType, type SourceEvent } from '../../../../../types/events'
-import { type Player } from '../../../../../types/players'
-import { v4 } from 'uuid'
+import { type SourceEvent } from '../../../../../types/events'
 import { connectToDatabase } from 'src/modules/db/connectToDatabase'
 import { postMessage } from 'src/ws/modules/postMessage'
+import { eventParser } from 'src/modules/eventParser'
 
 export async function main (event: SQSEvent): Promise<void> {
   console.log('[SQS EVENT PARSER] Event received')
@@ -12,84 +11,14 @@ export async function main (event: SQSEvent): Promise<void> {
     const e = event.Records[i]
     const messageBody = JSON.parse(e.body).Message
     const eventToParse: SourceEvent = (JSON.parse(messageBody).event)
-    if (process.env.MONGODB_PLAYERS_COLLECTION_NAME === undefined) {
-      throw Error('Define player collection')
-    }
-    switch (eventToParse.eventType) {
-      case SourceEventType.PlayerCreated: {
-        const { name, role }: { name: string, role: string } = JSON.parse(eventToParse.eventPayload)
-        if ((name !== '') && (role !== '')) {
-          const playerToAdd: Player = {
-            created: (new Date()).getTime(),
-            updated: (new Date()).getTime(),
-            playerId: v4(),
-            playerName: name,
-            playerRole: role
-          }
-          try {
-            await db.collection(process.env.MONGODB_PLAYERS_COLLECTION_NAME).insertOne(playerToAdd)
-            console.log('[SQS EVENT PARSER] Event PlayerCreated parsed')
-            await postMessage({
-              message: JSON.stringify({ type: SourceEventType.PlayerCreated, message: 'success' })
-            })
-            return
-          } catch (e) {
-            console.error(e)
-            return
-          }
-        }
-        break
-      }
-      case SourceEventType.PlayerUpdated: {
-        const { name, role, playerId }: { name: string, role: string, playerId: string } = (JSON.parse(eventToParse.eventPayload))
-        if (playerId !== '') {
-          try {
-            await db.collection(process.env.MONGODB_PLAYERS_COLLECTION_NAME).updateOne(
-              {
-                playerId
-              },
-              {
-                $set: {
-                  updated: (new Date()).getTime(),
-                  playerName: name,
-                  playerRole: role
-                }
-              }
-            )
-            console.log('[SQS EVENT PARSER] Event PlayerUpdated parsed')
-            await postMessage({
-              message: JSON.stringify({ type: SourceEventType.PlayerUpdated, message: 'success' })
-            })
-            return
-          } catch (e) {
-            console.error(e)
-            return
-          }
-        }
-        break
-      }
-      case SourceEventType.PlayerDeleted: {
-        console.log(JSON.parse(eventToParse.eventPayload))
-        const { playerId }: { name: string, role: string, playerId: string } = (JSON.parse(eventToParse.eventPayload))
-        if (playerId !== '') {
-          try {
-            await db.collection(process.env.MONGODB_PLAYERS_COLLECTION_NAME).deleteOne(
-              {
-                playerId
-              }
-            )
-            console.log('[SQS EVENT PARSER] Event PlayerDeleted parsed')
-            await postMessage({
-              message: JSON.stringify({ type: SourceEventType.PlayerDeleted, message: 'success' })
-            })
-            return
-          } catch (e) {
-            console.error(e)
-            return
-          }
-        }
-        break
-      }
+    try {
+      await eventParser(eventToParse, db)
+      await postMessage({
+        message: JSON.stringify({ type: eventToParse.eventType, message: 'success' })
+      })
+    } catch (e) {
+      console.error(e)
+      return
     }
   }
 }

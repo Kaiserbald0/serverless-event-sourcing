@@ -1,6 +1,7 @@
 # serverless-event-sourcing
 
-This is a experiment to try a simple serverless event sourcing API on AWS using Mongo as DB with a RemixJs frontend
+This is a experiment to try a simple serverless event sourcing API on AWS using Mongo as DB with a RemixJs frontend.
+Agrregate is updated after  each event
 
 The stack is managed using [SST](https://sst.dev/guide.html)
 
@@ -20,6 +21,12 @@ Stack
   - [SST Stack for Remix](https://docs.sst.dev/constructs/RemixSite)
 - Database: Mongo on Atlas
   - [SST Connection Guide](https://sst.dev/examples/how-to-use-mongodb-atlas-in-your-serverless-app.html)
+
+Env vars to set: (for example `.env.local`)
+MONGODB_URI
+MONGODB_DB_NAME
+MONGODB_EVENT_COLLECTION_NAME
+MONGODB_PLAYERS_COLLECTION_NAME
 
 Events
 
