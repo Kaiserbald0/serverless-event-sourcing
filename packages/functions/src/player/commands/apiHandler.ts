@@ -24,7 +24,7 @@ export async function main (event: APIGatewayProxyEvent, context: Context): Prom
         }
       }
       eventType = SourceEventType.PlayerCreated
-      eventPayload = JSON.parse(event.body)
+      eventPayload = { ...JSON.parse(event.body), playerId: v4() }
       break
     case 'DELETE':
       eventType = SourceEventType.PlayerDeleted
