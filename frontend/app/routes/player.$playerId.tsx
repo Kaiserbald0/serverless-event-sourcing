@@ -89,6 +89,10 @@ export const action = async({request, params}: ActionFunctionArgs) => {
           errors: ['Unable to connect to WebSocket or timeout'],
         };
       }
+    } else {
+      return {
+        errors: ['Something went wrong while sending the command'],
+      };
     }
   }
   else {

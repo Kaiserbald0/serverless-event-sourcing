@@ -22,7 +22,7 @@ Stack
 - Database: Mongo on Atlas
   - [SST Connection Guide](https://sst.dev/examples/how-to-use-mongodb-atlas-in-your-serverless-app.html)
 
-Env vars to set: (for example `.env.local`)
+Env vars to set: (see `.env.local.example`)
 MONGODB_URI
 MONGODB_DB_NAME
 MONGODB_EVENT_COLLECTION_NAME
