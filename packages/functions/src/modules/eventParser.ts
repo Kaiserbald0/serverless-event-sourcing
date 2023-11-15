@@ -1,6 +1,5 @@
 import { SourceEventType, type SourceEvent } from '../../../../types/events'
 import { type Player } from '../../../../types/players'
-import { v4 } from 'uuid'
 import { postMessage } from 'src/ws/modules/postMessage'
 import { type Db } from 'mongodb'
 
@@ -10,12 +9,12 @@ export async function eventParser (event: SourceEvent, db: Db): Promise<boolean>
   }
   switch (event.eventType) {
     case SourceEventType.PlayerCreated: {
-      const { name, role }: { name: string, role: string } = JSON.parse(event.eventPayload)
+      const { name, role, playerId }: { name: string, role: string, playerId: string } = JSON.parse(event.eventPayload)
       if ((name !== '') && (role !== '')) {
         const playerToAdd: Player = {
           created: (new Date()).getTime(),
           updated: (new Date()).getTime(),
-          playerId: v4(),
+          playerId,
           playerName: name,
           playerRole: role
         }
@@ -52,7 +51,7 @@ export async function eventParser (event: SourceEvent, db: Db): Promise<boolean>
       break
     }
     case SourceEventType.PlayerDeleted: {
-      const { playerId }: { name: string, role: string, playerId: string } = (JSON.parse(event.eventPayload))
+      const { playerId }: { playerId: string } = (JSON.parse(event.eventPayload))
       if (playerId !== '') {
         try {
           await db.collection(process.env.MONGODB_PLAYERS_COLLECTION_NAME).deleteOne(
