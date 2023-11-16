@@ -2,7 +2,7 @@ import { type SQSEvent } from 'aws-lambda'
 import { type SourceEvent } from '../../../../../types/events'
 import { connectToDatabase } from 'src/modules/db/connectToDatabase'
 import { postMessage } from 'src/ws/modules/postMessage'
-import { eventParser } from 'src/modules/eventParser'
+import { playerEventParser } from 'src/modules/playerEventParser'
 
 export async function main (event: SQSEvent): Promise<void> {
   console.log('[SQS EVENT PARSER] Event received')
@@ -12,7 +12,7 @@ export async function main (event: SQSEvent): Promise<void> {
     const messageBody = JSON.parse(e.body).Message
     const eventToParse: SourceEvent = (JSON.parse(messageBody).event)
     try {
-      await eventParser(eventToParse, db)
+      await playerEventParser(eventToParse, db)
       await postMessage({
         message: JSON.stringify({ type: eventToParse.eventType, message: 'success' })
       })

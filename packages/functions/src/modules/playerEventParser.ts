@@ -3,7 +3,7 @@ import { type Player } from '../../../../types/players'
 import { postMessage } from 'src/ws/modules/postMessage'
 import { type Db } from 'mongodb'
 
-export async function eventParser (event: SourceEvent, db: Db): Promise<boolean> {
+export async function playerEventParser (event: SourceEvent, db: Db): Promise<boolean> {
   if (process.env.MONGODB_PLAYERS_COLLECTION_NAME === undefined) {
     throw Error('Define player collection')
   }

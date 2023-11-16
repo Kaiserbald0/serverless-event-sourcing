@@ -1,5 +1,5 @@
 import { type SQSEvent } from 'aws-lambda'
-// import { SourceEventType, type SourceEvent } from '../../../../../types/events'
+import { type SourceEvent } from '../../../../../types/events'
 // import { type Player } from '../../../../../types/players'
 // import { v4 } from 'uuid'
 // import { connectToDatabase } from 'src/modules/db/connectToDatabase'
@@ -8,10 +8,11 @@ import { type SQSEvent } from 'aws-lambda'
 export async function main (event: SQSEvent): Promise<void> {
   console.log('[SQS TIME TRAVEL PARSER] Event received')
   // const db = await connectToDatabase()
-  // for (let i = 0; i < event.Records.length; i++) {
-  //   const e = event.Records[i]
-  //   const messageBody = JSON.parse(e.body).Message
-  //   const eventToParse: SourceEvent = (JSON.parse(messageBody).event)
+  for (let i = 0; i < event.Records.length; i++) {
+    const e = event.Records[i]
+    const messageBody = JSON.parse(e.body).Message
+    const eventToParse: SourceEvent = (JSON.parse(messageBody).event)
+    console.log(eventToParse)
   //   if (process.env.MONGODB_PLAYERS_COLLECTION_NAME === undefined) {
   //     throw Error('Define player collection')
   //   }
@@ -91,5 +92,5 @@ export async function main (event: SQSEvent): Promise<void> {
   //       break
   //     }
   //   }
-  // }
+  }
 }

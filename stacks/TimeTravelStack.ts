@@ -22,7 +22,8 @@ export function TimeTravelStack ({ stack }: StackContext): {
     consumer: timeTravelFunction,
     cdk: {
       queue: {
-        fifo: true
+        fifo: true,
+        contentBasedDeduplication: true
       }
     }
   })
@@ -33,7 +34,8 @@ export function TimeTravelStack ({ stack }: StackContext): {
     },
     cdk: {
       topic: {
-        fifo: true
+        fifo: true,
+        contentBasedDeduplication: true
       }
     }
   })
