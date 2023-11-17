@@ -21,7 +21,6 @@ export async function main (event: SQSEvent): Promise<void> {
       )
     } catch (e) {
       console.error(e)
-      return
     }
   }
 }

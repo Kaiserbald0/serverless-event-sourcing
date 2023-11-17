@@ -121,6 +121,19 @@ export async function main (event: SQSEvent): Promise<void> {
         await playerEventParser(eventToReplay, db, rebuildingCollectionName)
       }
     }
+    const oldCollectionName = `${process.env.MONGODB_PLAYERS_COLLECTION_NAME}_previous`
+    await db.collection(oldCollectionName).drop().catch((error) => {
+      if (error.codeName !== 'NamespaceNotFound') {
+        throw error
+      }
+    })
+    await db.collection(process.env.MONGODB_PLAYERS_COLLECTION_NAME).rename(oldCollectionName).catch((error) => {
+      console.log(error.codeName)
+      if (error.codeName !== 'NamespaceNotFound') {
+        throw error
+      }
+    })
+    await db.collection(rebuildingCollectionName).rename(process.env.MONGODB_PLAYERS_COLLECTION_NAME)
     await postMessage({ type: TimeTravelEventType.TimeTravelled, message: 'success' })
   }
 }
