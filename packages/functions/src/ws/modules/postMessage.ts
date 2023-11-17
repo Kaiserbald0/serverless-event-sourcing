@@ -1,8 +1,10 @@
 import { ApiGatewayManagementApi, DynamoDB } from 'aws-sdk'
 import { Table } from 'sst/node/table'
 import { WebSocketApi } from 'sst/node/websocket-api'
+import { type WebSocketMessage } from '../../../../../types/events'
 
-export const postMessage = async ({ message }: { message: string }): Promise<boolean> => {
+export const postMessage = async ({ type, message }: WebSocketMessage): Promise<boolean> => {
+  const messageToSend = JSON.stringify({ type, message })
   const tableName = Table.WSConnections.tableName
   const wsEndpoint = WebSocketApi.WSApi.httpsUrl
   const dynamoDb = new DynamoDB.DocumentClient()
@@ -16,7 +18,7 @@ export const postMessage = async ({ message }: { message: string }): Promise<boo
   const postToConnection = async ({ id }: { id: any }): Promise<boolean> => {
     try {
       await apiG
-        .postToConnection({ ConnectionId: id, Data: message })
+        .postToConnection({ ConnectionId: id, Data: messageToSend })
         .promise()
       return true
     } catch (e: any) {

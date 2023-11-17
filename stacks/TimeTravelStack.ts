@@ -15,7 +15,8 @@ export function TimeTravelStack ({ stack }: StackContext): {
     environment: {
       MONGODB_URI: (process.env.MONGODB_URI ?? ''),
       MONGODB_DB_NAME: (process.env.MONGODB_DB_NAME ?? ''),
-      MONGODB_PLAYERS_COLLECTION_NAME: (process.env.MONGODB_PLAYERS_COLLECTION_NAME ?? '')
+      MONGODB_PLAYERS_COLLECTION_NAME: (process.env.MONGODB_PLAYERS_COLLECTION_NAME ?? ''),
+      MONGODB_EVENT_COLLECTION_NAME: (process.env.MONGODB_EVENT_COLLECTION_NAME ?? '')
     }
   })
   const timeTravelQueue = new Queue(stack, 'TimeTravelQueue', {

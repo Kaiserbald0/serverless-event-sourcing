@@ -1,96 +1,126 @@
 import { type SQSEvent } from 'aws-lambda'
-import { type SourceEvent } from '../../../../../types/events'
-// import { type Player } from '../../../../../types/players'
-// import { v4 } from 'uuid'
-// import { connectToDatabase } from 'src/modules/db/connectToDatabase'
-// import { postMessage } from 'src/ws/modules/postMessage'
+import { type SourceEvent, TimeTravelEventType } from '../../../../../types/events'
+import { connectToDatabase } from 'src/db/connectToDatabase'
+import { playerEventParser } from 'src/player/modules/playerEventParser'
+import { postMessage } from 'src/ws/modules/postMessage'
 
 export async function main (event: SQSEvent): Promise<void> {
   console.log('[SQS TIME TRAVEL PARSER] Event received')
-  // const db = await connectToDatabase()
+  const db = await connectToDatabase()
+  if (process.env.MONGODB_PLAYERS_COLLECTION_NAME === undefined) {
+    throw Error('Define players collection')
+  }
+  if (process.env.MONGODB_EVENT_COLLECTION_NAME === undefined) {
+    throw Error('Define events collection')
+  }
   for (let i = 0; i < event.Records.length; i++) {
     const e = event.Records[i]
     const messageBody = JSON.parse(e.body).Message
-    const eventToParse: SourceEvent = (JSON.parse(messageBody).event)
-    console.log(eventToParse)
-  //   if (process.env.MONGODB_PLAYERS_COLLECTION_NAME === undefined) {
-  //     throw Error('Define player collection')
-  //   }
-  //   switch (eventToParse.eventType) {
-  //     case SourceEventType.PlayerCreated: {
-  //       const { name, role }: { name: string, role: string } = JSON.parse(eventToParse.eventPayload)
-  //       if ((name !== '') && (role !== '')) {
-  //         const playerToAdd: Player = {
-  //           created: (new Date()).getTime(),
-  //           updated: (new Date()).getTime(),
-  //           playerId: v4(),
-  //           playerName: name,
-  //           playerRole: role
-  //         }
-  //         try {
-  //           await db.collection(process.env.MONGODB_PLAYERS_COLLECTION_NAME).insertOne(playerToAdd)
-  //           console.log('[SQS EVENT PARSER] Event PlayerCreated parsed')
-  //           await postMessage({
-  //             message: JSON.stringify({ type: SourceEventType.PlayerCreated, message: 'success' })
-  //           })
-  //           return
-  //         } catch (e) {
-  //           console.error(e)
-  //           return
-  //         }
-  //       }
-  //       break
-  //     }
-  //     case SourceEventType.PlayerUpdated: {
-  //       const { name, role, playerId }: { name: string, role: string, playerId: string } = (JSON.parse(eventToParse.eventPayload))
-  //       if (playerId !== '') {
-  //         try {
-  //           await db.collection(process.env.MONGODB_PLAYERS_COLLECTION_NAME).updateOne(
-  //             {
-  //               playerId
-  //             },
-  //             {
-  //               $set: {
-  //                 updated: (new Date()).getTime(),
-  //                 playerName: name,
-  //                 playerRole: role
-  //               }
-  //             }
-  //           )
-  //           console.log('[SQS EVENT PARSER] Event PlayerUpdated parsed')
-  //           await postMessage({
-  //             message: JSON.stringify({ type: SourceEventType.PlayerUpdated, message: 'success' })
-  //           })
-  //           return
-  //         } catch (e) {
-  //           console.error(e)
-  //           return
-  //         }
-  //       }
-  //       break
-  //     }
-  //     case SourceEventType.PlayerDeleted: {
-  //       console.log(JSON.parse(eventToParse.eventPayload))
-  //       const { playerId }: { name: string, role: string, playerId: string } = (JSON.parse(eventToParse.eventPayload))
-  //       if (playerId !== '') {
-  //         try {
-  //           await db.collection(process.env.MONGODB_PLAYERS_COLLECTION_NAME).deleteOne(
-  //             {
-  //               playerId
-  //             }
-  //           )
-  //           console.log('[SQS EVENT PARSER] Event PlayerDeleted parsed')
-  //           await postMessage({
-  //             message: JSON.stringify({ type: SourceEventType.PlayerDeleted, message: 'success' })
-  //           })
-  //           return
-  //         } catch (e) {
-  //           console.error(e)
-  //           return
-  //         }
-  //       }
-  //       break
-  //     }
-  //   }
+    const eventId: SourceEvent = (JSON.parse(messageBody).eventId)
+    // Aggregation pipeline to get all the events recorded before the evetID and the eventId itself
+    const aggregationPipeline = [
+      {
+        $match: {
+          eventId
+        }
+      },
+      {
+        $facet: {
+          originalEvent: [
+            {
+              $project: {
+                eventId: 1,
+                eventType: 1,
+                eventPayload: 1,
+                eventDate: 1
+              }
+            }
+          ],
+          eventsAfterSpecificEvent: [
+            {
+              $lookup: {
+                from: process.env.MONGODB_EVENT_COLLECTION_NAME,
+                let: { specificEventDate: '$eventDate' },
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: {
+                        $and: [
+                          { $lt: ['$eventDate', '$$specificEventDate'] },
+                          { $ne: ['$eventId', eventId] }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    $sort: { eventDate: 1 }
+                  },
+                  {
+                    $project: {
+                      _id: 1,
+                      eventId: 1,
+                      eventType: 1,
+                      eventPayload: 1,
+                      eventDate: 1
+                    }
+                  }
+                ],
+                as: 'eventsAfterSpecificEvent'
+              }
+            },
+            {
+              $unwind: '$eventsAfterSpecificEvent'
+            },
+            {
+              $replaceRoot: { newRoot: '$eventsAfterSpecificEvent' }
+            },
+            {
+              $project: {
+                eventId: 1,
+                eventType: 1,
+                eventPayload: 1,
+                eventDate: 1
+              }
+            },
+            {
+              $sort: { eventDate: 1 }
+            }
+          ]
+        }
+      },
+      {
+        $project: {
+          combinedResults: {
+            $concatArrays: ['$originalEvent', '$eventsAfterSpecificEvent']
+          }
+        }
+      },
+      {
+        $unwind: '$combinedResults'
+      },
+      {
+        $replaceRoot: { newRoot: '$combinedResults' }
+      },
+      {
+        $sort: { eventDate: 1 }
+      }
+    ]
+    const cursor = db.collection(process.env.MONGODB_EVENT_COLLECTION_NAME).aggregate(aggregationPipeline)
+    const rebuildingCollectionName = `${process.env.MONGODB_PLAYERS_COLLECTION_NAME}_rebuilding`
+    await db.collection(rebuildingCollectionName).drop().catch((error) => {
+      if (error.codeName !== 'NamespaceNotFound') {
+        throw error
+      }
+    })
+    await db.collection(rebuildingCollectionName).createIndex({ playerRole: 1 })
+    await db.collection(rebuildingCollectionName).createIndex({ playerName: 1 })
+    await db.collection(rebuildingCollectionName).createIndex({ playerId: 1 })
+    while (await cursor.hasNext()) {
+      const eventToReplay = await cursor.next() as SourceEvent
+      if (eventToReplay !== null) {
+        await playerEventParser(eventToReplay, db, rebuildingCollectionName)
+      }
+    }
+    await postMessage({ type: TimeTravelEventType.TimeTravelled, message: 'success' })
   }
 }
