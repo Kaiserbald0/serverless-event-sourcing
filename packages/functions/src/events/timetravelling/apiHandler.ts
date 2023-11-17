@@ -1,7 +1,7 @@
 import AWS from 'aws-sdk'
 import { v4 } from 'uuid'
 import { type Context, type APIGatewayProxyEvent, type APIGatewayProxyResult } from 'aws-lambda'
-import { connectToDatabase } from 'src/modules/db/connectToDatabase'
+import { connectToDatabase } from 'src/db/connectToDatabase'
 import { Topic } from 'sst/node/topic'
 
 const sns = new AWS.SNS()

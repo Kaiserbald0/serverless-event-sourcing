@@ -1,8 +1,8 @@
 import { type SQSEvent } from 'aws-lambda'
 import { type SourceEvent } from '../../../../../types/events'
-import { connectToDatabase } from 'src/modules/db/connectToDatabase'
+import { connectToDatabase } from 'src/db/connectToDatabase'
 import { postMessage } from 'src/ws/modules/postMessage'
-import { playerEventParser } from 'src/modules/playerEventParser'
+import { playerEventParser } from 'src/player/modules/playerEventParser'
 
 export async function main (event: SQSEvent): Promise<void> {
   console.log('[SQS EVENT PARSER] Event received')

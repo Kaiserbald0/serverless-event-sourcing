@@ -1,5 +1,5 @@
-import { SourceEventType, type SourceEvent } from '../../../../types/events'
-import { type Player } from '../../../../types/players'
+import { SourceEventType, type SourceEvent } from '../../../../../types/events'
+import { type Player } from '../../../../../types/players'
 import { postMessage } from 'src/ws/modules/postMessage'
 import { type Db } from 'mongodb'
 
