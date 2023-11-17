@@ -2,8 +2,9 @@ import { ActionFunctionArgs, type MetaFunction } from "@remix-run/node";
 import { useFetcher, useLoaderData } from "@remix-run/react";
 import { format } from "date-fns";
 import TopMenu from "~/components/TopMenu";
-import { SourceEventResource } from '../../../types/events'
+import { SourceEventResource, TimeTravelEventType } from '../../../types/events'
 import ShowErrors from "~/components/ShowErrors";
+import waitForWebSocketMessage from "~/components/websocket.server";
 
 export const meta: MetaFunction = () => {
   return [
@@ -32,7 +33,15 @@ export const action = async({request, params}: ActionFunctionArgs) => {
     });
     const result = (await response.json())
     if (result.result === "success") {
-      return null
+      try {
+        await waitForWebSocketMessage(TimeTravelEventType.TimeTravelled);
+        return null
+      } catch (error) {
+        console.error('WebSocket error or timeout:', error);
+        return {
+          errors: ['Unable to connect to WebSocket or timeout'],
+        };
+      }
     } else {
       return {
         errors: ['Something went wrong while sending the command'],

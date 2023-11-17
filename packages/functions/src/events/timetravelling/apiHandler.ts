@@ -21,18 +21,25 @@ export async function main (event: APIGatewayProxyEvent, context: Context): Prom
       }
       const { eventId } = JSON.parse(event.body)
       const messageGroupId = `Replay-${v4()}`
-      await sns
-        .publish({
-          TopicArn: Topic.TimeTravelTopic.topicArn,
-          Message: JSON.stringify({ eventId }),
-          MessageStructure: 'string',
-          MessageGroupId: messageGroupId
-        })
-        .promise()
-
-      return {
-        statusCode: 200,
-        body: JSON.stringify({ result: 'success' })
+      try {
+        await sns
+          .publish({
+            TopicArn: Topic.TimeTravelTopic.topicArn,
+            Message: JSON.stringify({ eventId }),
+            MessageStructure: 'string',
+            MessageGroupId: messageGroupId
+          })
+          .promise()
+        return {
+          statusCode: 200,
+          body: JSON.stringify({ result: 'success' })
+        }
+      } catch (e) {
+        console.error(e)
+        return {
+          statusCode: 500,
+          body: JSON.stringify({ result: 'cannot publish' })
+        }
       }
     }
   }
