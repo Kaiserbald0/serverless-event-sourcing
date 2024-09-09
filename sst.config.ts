@@ -1,23 +1,19 @@
-import { type SSTConfig } from 'sst'
-import { WebSocketStack } from './stacks/WebSocketStack'
-import { EventSourcingStack } from './stacks/EventSourcingStack'
-import { EventSourcingPlayerStack } from './stacks/EventSourcingPlayerStack'
-import { TimeTravelStack } from './stacks/TimeTravelStack'
+import { type SSTConfig } from 'sst';
+import { EventBusStack } from './stacks/EventBusStack';
+import { MainStack } from './stacks/MainStack';
 
 export default {
-  config (_input) {
+  config() {
     return {
-      name: 'serverless-event-sourcing',
-      region: 'eu-west-1'
-    }
+      name: 'event-sourcing-demo',
+      region: 'eu-west-1',
+    };
   },
-  stacks (app) {
+  stacks(app) {
     if (app.stage !== 'prod') {
-      app.setDefaultRemovalPolicy('destroy')
+      app.setDefaultRemovalPolicy('destroy');
     }
-    app.stack(WebSocketStack)
-    app.stack(EventSourcingPlayerStack)
-    app.stack(TimeTravelStack)
-    app.stack(EventSourcingStack)
-  }
-} satisfies SSTConfig
+    app.stack(EventBusStack);
+    app.stack(MainStack);
+  },
+} satisfies SSTConfig;

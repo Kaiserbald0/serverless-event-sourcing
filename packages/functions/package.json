@@ -1,5 +1,5 @@
 {
-  "name": "@pub-sub/functions",
+  "name": "@event-sourcing-demo/functions",
   "version": "0.0.0",
   "type": "module",
   "scripts": {
@@ -9,7 +9,7 @@
   "devDependencies": {
     "@types/aws-lambda": "^8.10.125",
     "@types/node": "^20.8.7",
-    "sst": "^2.30.3",
+    "sst": "2.43.4",
     "vitest": "^0.34.6"
   },
   "dependencies": {

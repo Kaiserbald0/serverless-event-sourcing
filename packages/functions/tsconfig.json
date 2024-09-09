@@ -5,7 +5,7 @@
     "moduleResolution": "node",
     "baseUrl": ".",
     "paths": {
-      "@pub-sub/core/*": ["../core/src/*"]
+      "@event-sourcing-demo/core/*": ["../core/src/*"]
     }
   }
 }

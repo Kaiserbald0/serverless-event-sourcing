@@ -1,5 +1,5 @@
 {
-  "name": "pub-sub",
+  "name": "event-sourcing-demo",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -9,21 +9,31 @@
     "deploy": "sst deploy",
     "remove": "sst remove",
     "console": "sst console",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prettier:fix": "npx prettier . --write",
+    "prettier:check": "npx prettier . --check",
+    "lint": "npx eslint */**"
   },
   "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^4.3.0",
     "@tsconfig/node18": "^18.2.2",
     "@types/uuid": "^9.0.6",
-    "@typescript-eslint/eslint-plugin": "^6.9.0",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
     "aws-cdk-lib": "2.95.1",
     "constructs": "10.2.69",
-    "eslint": "^8.52.0",
-    "eslint-config-standard-with-typescript": "^39.1.1",
-    "eslint-plugin-import": "^2.29.0",
-    "eslint-plugin-n": "^16.2.0",
+    "eslint": "^8.57.0",
+    "eslint-config-standard-with-typescript": "^43.0.1",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-jsx-a11y": "^6.8.0",
+    "eslint-plugin-n": "^16.6.2",
     "eslint-plugin-promise": "^6.1.1",
-    "sst": "^2.30.3",
-    "typescript": "^5.2.2"
+    "eslint-plugin-react": "^7.34.1",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-tailwindcss": "^3.15.1",
+    "jsonc-eslint-parser": "^2.4.0",
+    "prettier": "3.2.5",
+    "sst": "2.43.4",
+    "typescript": "^5.4.3"
   },
   "workspaces": [
     "packages/*"
@@ -31,6 +41,8 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.433.0",
     "@aws-sdk/lib-dynamodb": "^3.433.0",
+    "@sinclair/typebox": "^0.32.9",
+    "eslint-import-resolver-typescript": "^3.6.1",
     "uuid": "^9.0.1"
   }
 }
